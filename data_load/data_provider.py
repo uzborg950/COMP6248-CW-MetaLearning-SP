@@ -9,14 +9,16 @@ try:
     import torch
     from pathlib import Path
     import importlib
+    import random
     importlib.reload(Config)
 except NameError: # It hasn't been imported yet
         import config.config_flags as Config
 
 #Dataset type: train, val, test
 class DataProvider(object):
-    def __init__(self, dataset_type, debug=False):
+    def __init__(self, dataset_type, debug=False, verbose=False):
         self._dataset_type = dataset_type
+        self._verbose = verbose
         if(debug == True):
             self._embeddings_data = self._load_embeddings_data(dataset_type)
             self._index_data(self._embeddings_data)
@@ -81,3 +83,70 @@ class DataProvider(object):
                          "is: {}").format(image_counts)
         assert len(image_counts) >= 1, error_message
         assert min(image_counts) > 0    
+
+    #Adapted from https://github.com/RuohanW/Tasml
+    def create_db(self, size, num_classes, tr_size, val_size):
+        def _build_one_instance_py():
+            """Builds a random problem instance using data from specified classes."""
+            class_list = list(self._class_image_file_dict.keys())
+            sample_count = (tr_size + val_size) #1 + 15
+            shuffled_folders = class_list[:]
+            random.shuffle(shuffled_folders)
+            shuffled_folders = shuffled_folders[:num_classes] #Selecting 5 classes from 97 classes randomly (tieredImageNet 5 way)
+            error_message = "len(shuffled_folders) {} is not num_classes: {}".format(
+                len(shuffled_folders), num_classes)
+            assert len(shuffled_folders) == num_classes, error_message
+            image_paths = []
+            class_ids = []
+            for class_id, class_name in enumerate(shuffled_folders): #Iterate the 5 randomly chosen classes
+                all_images = self._class_image_file_dict[class_name]
+                all_images = np.random.choice(all_images, sample_count, replace=False) #from all the image embedding file names in one class, select 16 random examples
+                error_message = "{} == {} failed".format(len(all_images), sample_count)
+                assert len(all_images) == sample_count, error_message
+                image_paths.append(all_images) #Contains filenames of the 16 examples
+                class_ids.append([[class_id]] * sample_count) #Appends class_id 16 times. This id is given to each randomly chosen class
+
+            label_array = np.array(class_ids, dtype=np.int32)
+            path_array = np.array(image_paths)
+            task_sig = self._task_signature(path_array, sample_count)
+
+            
+            if self._verbose:
+                print("task_sig", task_sig.shape)
+                print("label_array", label_array.shape)
+                print("path_array", path_array.shape)
+                
+            return task_sig, label_array, path_array
+
+        ret = []
+        for i in range(size): #repeat 30,000 times
+            ret.append(_build_one_instance_py()) 
+
+        self.db = ret
+    
+    #Adapted from https://github.com/RuohanW/Tasml
+    ''' Finds the kernel mean embedding of dataset '''
+    def _task_signature(self, path_array, sig_size):
+        embeddings = self._image_file_embeddings_dict
+        embedding_array = np.array([[embeddings[image_path] #store the embeddings of the 16 filenames 
+                                     for image_path in class_paths[:sig_size]] 
+                                    for class_paths in path_array]).astype(np.float64) #Iterate 16 filenames of all 5 classes
+
+        if(self._verbose):
+            print("embedding_array: ", embedding_array.shape)
+        embedding_array = self.divide_fro_norm(embedding_array) #normalize by dividing by frobenius norm of p=640 components
+
+        mean = np.mean(embedding_array, axis=(0, 1)) #1. class-wise mean (16x640)  --> 2. examples mean (640)
+
+        return mean
+    
+    def divide_fro_norm(self, a):
+        return a / np.linalg.norm(a, axis=-1, keepdims=True) #Norm dimensions (5, 16, 1) 
+    
+    def save_db(self, path, force=False):
+        if path is not None and hasattr(self, "db"):
+            if osp.exists(path) and not force:
+                print("db exists. Skipping")
+            else:
+                with open(path, "wb") as f:
+                    pickle.dump(self.db, f)
