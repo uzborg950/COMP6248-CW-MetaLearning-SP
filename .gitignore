@@ -29,6 +29,7 @@ MANIFEST
 
 # VsCode
 *.code-workspace
+.vscode/
 
 # Checkpoints
 checkpoint/
