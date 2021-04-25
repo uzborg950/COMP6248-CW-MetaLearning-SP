@@ -1,14 +1,18 @@
-import torch
-import math
-import torchvision
-import PIL
-import glob
-glob.glob('.')
-import os
-import sys
-import datasetconf as DC
-import TaskClass as TaskClass
 
+from __future__ import annotations
+try:   
+    import torch
+    import math
+    import torchvision
+    import PIL
+    import glob
+    glob.glob('.')
+    import os
+    import sys
+    import datasetconf as DC
+    importlib.reload(TaskClass)
+except NameError: # It hasn't been imported yet
+    import TaskClass as TaskClass
 class Task():
 
     def __init__(self, task_friendly_name: str, batch_size: int):
@@ -26,7 +30,7 @@ class Task():
 
 
     def reset_test_session(self):
-        shape_ts = [i for i in self.task_classes[0].support_imgs[0].shape] # All images of equal size + no empty task classes.
+        shape_ts = [i for i in self.task_classes[0].test_imgs[0].shape] # All images of equal size + no empty task classes.
         #
         num_test_samples = sum([len(task_class.test_imgs) for task_class in self.task_classes])
         #

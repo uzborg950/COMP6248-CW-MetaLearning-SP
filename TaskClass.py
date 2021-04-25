@@ -1,3 +1,4 @@
+from __future__ import annotations
 import torch
 import math
 import torchvision
@@ -7,7 +8,6 @@ glob.glob('.')
 import os
 import sys
 import datasetconf as DC
-
 class TaskClass():
 
     def __init__(self, class_id: int, class_friendly_name: str = None):
@@ -18,15 +18,15 @@ class TaskClass():
         self.class_friendly_name = str(class_id) if class_friendly_name == None else class_friendly_name
 
 
-    def set_support_dataset(self, support_imgs: list[torch.Tensor]):
+    def set_support_dataset(self, support_imgs: List[torch.Tensor]):
         self.support_imgs = support_imgs
 
 
-    def set_query_dataset(self, query_imgs: list[torch.Tensor]):
+    def set_query_dataset(self, query_imgs: List[torch.Tensor]):
         self.query_imgs = query_imgs
 
 
-    def set_test_dataset(self, test_imgs: list[torch.Tensor]):
+    def set_test_dataset(self, test_imgs: List[torch.Tensor]):
         self.test_imgs = test_imgs
 
 

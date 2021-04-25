@@ -64,7 +64,10 @@ class DataProvider(object):
         self._validate_index(pkl_data)
 
         return
-        
+
+    def get_embeddings_for_image_file(self, image_file):
+        return self._image_file_embeddings_dict[image_file]
+
     #Adapted from https://github.com/RuohanW/Tasml
     def _validate_index(self, pkl_data):
         """Performs checks of the data index and image counts per class."""

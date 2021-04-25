@@ -11,12 +11,15 @@ try:
     import pickle
     import os
     import os.path as osp
+    import sys
     import importlib
     importlib.reload(dp)
     importlib.reload(Config)
+    importlib.reload(helper)
 except NameError: # It hasn't been imported yet
         import data_load.data_provider as dp
         import config.config_flags as Config
+        import utils.helper as helper
 
 
 
@@ -29,11 +32,27 @@ def run_lsmeta_unlimited(lam, l2_weight, layers, num=None):
         save_path += "_%i" % num
     run_training_loop(save_path, lam, l2_weight, layers)
 
+def top_m_filtering():
+    ''' Filters largest m alpha weights and their corresponding train tasks ''' 
+    alpha_weights_path = helper.get_alpha_weights_path()
+    alpha_weights = unpickle(alpha_weights_path)
+    train_path = helper.get_task_dataset_path("train")
+    train_tasks = unpickle(train_path)
+
+    top_m = Config.TOP_M
+    top_m_idx = np.flip(np.argsort(alpha_weights, axis=0))[:top_m,0]
+    alpha_weights = alpha_weights[top_m_idx]
+    train_tasks = [train_tasks[i] for i in top_m_idx]
+    return alpha_weights, train_tasks
+
 def main(argv):
     os.makedirs(Config.SAVE_ROOT, exist_ok=True)
     if argv[1] == "gen_db":
         print("Generating tasks and compute their alpha weights")
         populate_db()
+    if argv[1] == "top_m":
+        print("(DEBUG ONLY) Filtering top m tasks based on alpha weights")
+        alpha_weights, train_tasks = top_m_filtering()
     elif argv[1] == "uncon_meta":
         print("Learning warmstart parameters with unconditional meta-learning")
         run_lsmeta_unlimited(0.1, 1e-6, (640, 640))
@@ -58,13 +77,14 @@ def build_db(dataset_type_pkl, sample_size):
 
     if dataset_type_pkl == "test":
         val_size = Config.TEST_VALIDATION_NUM_OF_EXAMPLES_PER_CLASS
+        tr_size = 0
     else:
         val_size = Config.VALIDATION_NUM_OF_EXAMPLES_PER_CLASS
-
+    
     save_path = osp.join(checkpoint_path, "%s_%s_%i_%i_%i" % (dataset_type_pkl, db_title, sample_size, tr_size, val_size))
 
     if not osp.exists(save_path):
-        provider = dp.DataProvider(dataset_type_pkl, debug=False, verbose=True)
+        provider = dp.DataProvider(dataset_type_pkl, debug=False, verbose=False)
         provider.create_db(sample_size, num_classes, tr_size, val_size)
         provider.save_db(save_path)
 
@@ -160,3 +180,6 @@ def build_dist(feat, feat_2=None):
     dist = np.sum(feat ** 2, axis=1, keepdims=True) + np.sum(feat_2 ** 2, axis=1)[np.newaxis, :] \
            - 2 * np.matmul(feat, feat_2.T)
     return dist
+
+if __name__ == "__main__":
+    main(sys.argv)
