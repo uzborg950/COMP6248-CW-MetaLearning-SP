@@ -24,7 +24,11 @@ def maml_nn_classifier_learn(
     #
     # MAML.
     for _ in range(meta_epochs): # TODO: change to 'convergence'?.
-        backup_named_parameters = test_net.named_parameters
+        #
+        # Store this epoch's theta.
+        backup_named_parameters = OrderedDict()
+        for name, params in test_net.named_parameters():
+            backup_named_parameters[name] = params.clone()
         #
         outer_optimiser.zero_grad()
         test_net.zero_grad()
@@ -32,21 +36,26 @@ def maml_nn_classifier_learn(
         outer_loss_sum = 0
         #
         for task in tasks:
+            # Reload theta.
+            for name, params in test_net.named_parameters():
+                params.data.copy_(backup_named_parameters[name])
             #
+            # Inner loss.
             supp_train_inner_loss = loss_function(test_net(task.supp_train), task.supp_targets)
-            #
             test_net.zero_grad()
             grads = torch.autograd.grad(supp_train_inner_loss, test_net.parameters(), create_graph=True)
             #
+            # Compute theta prime.
             named_params = OrderedDict()
             for (pname, param), grad in zip(test_net.named_parameters(), grads):
                 named_params[pname] = inner_optimiser(param, grad)
+            # Load theta prime.
+            for name, params in test_net.named_parameters():
+                params.data.copy_(named_params[name])
             #
-            test_net.named_parameters = named_params
-            query_tr_inner_loss = loss_function(test_net(task.query_train), task.query_targets)
-            test_net.named_parameters = backup_named_parameters
-            #
-            outer_loss_sum += query_tr_inner_loss
+            # Other loss
+            outer_loss_sum += loss_function(test_net(task.query_train), task.query_targets)
         #
         outer_loss_sum.backward()
         outer_optimiser.step()
+
