@@ -35,19 +35,11 @@ def generate_tasks(task_db, data_provider, tr_size, val_size, device):
             train_embeddings = embeddings_list[:tr_size]
             val_embeddings = embeddings_list[tr_size:]
 
-            if(tr_size ==0):
-                # testing
-                taskclass.set_test_dataset(val_embeddings)
-            else:
-                # training
-                taskclass.set_support_dataset(train_embeddings)
-                taskclass.set_query_dataset(val_embeddings)
+            dataset_type = data_provider.get_dataset_type()
+ 
+            taskclass.set_query_dataset(val_embeddings)
+            taskclass.set_support_dataset(train_embeddings)
 
-        if(tr_size ==0):
-            # testing
-            task_model.reset_test_session()
-        else:
-            # training
-            task_model.reset_train_session()
+        task_model.reset_train_session()
         tasks.append(task_model)
     return tasks

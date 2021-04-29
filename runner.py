@@ -38,24 +38,34 @@ def top_m_filtering():
     alpha_weights = unpickle(alpha_weights_path)
     train_path = helper.get_task_dataset_path("train")
     train_tasks = unpickle(train_path)
-
+#1st row: highest weighted training task for each test tasks
     top_m = Config.TOP_M
-    top_m_idx = np.flip(np.argsort(alpha_weights, axis=0))[:top_m,0]
-    alpha_weights = alpha_weights[top_m_idx]
-    train_tasks = [train_tasks[i] for i in top_m_idx]
-    return alpha_weights, train_tasks
+    top_m_idx = np.flip(np.argsort(alpha_weights, axis=0), axis = 0)[:top_m,:]
+
+    top_m_weights = None
+    top_m_tasks = None
+    num_test_tasks = alpha_weights.shape[1]
+    for n in range(num_test_tasks):
+        if top_m_weights is None:
+            top_m_weights = alpha_weights[top_m_idx[:,n],n].reshape(top_m,1)
+            top_m_tasks = [[train_tasks[i] for i in top_m_idx[:,n]]]
+        else:
+            top_m_weights =  np.append(top_m_weights , alpha_weights[top_m_idx[:,n],n].reshape(top_m,1), axis=1)
+            top_m_tasks.append([train_tasks[i] for i in top_m_idx[:,n]])
+
+    return top_m_weights, top_m_tasks
 
 def main(argv):
     os.makedirs(Config.SAVE_ROOT, exist_ok=True)
-    if argv[1] == "gen_db":
-        print("Generating tasks and compute their alpha weights")
-        populate_db()
-    if argv[1] == "top_m":
-        print("(DEBUG ONLY) Filtering top m tasks based on alpha weights")
-        alpha_weights, train_tasks = top_m_filtering()
-    elif argv[1] == "uncon_meta":
-        print("Learning warmstart parameters with unconditional meta-learning")
-        run_lsmeta_unlimited(0.1, 1e-6, (640, 640))
+    #if argv[1] == "gen_db":
+    print("Generating tasks and compute their alpha weights")
+    populate_db()
+    #if argv[1] == "top_m":
+    print("(DEBUG ONLY) Filtering top m tasks based on alpha weights")
+    alpha_weights, train_tasks = top_m_filtering()
+    #elif argv[1] == "uncon_meta":
+        #print("Learning warmstart parameters with unconditional meta-learning")
+        #run_lsmeta_unlimited(0.1, 1e-6, (640, 640))
 
 
 def populate_db():
@@ -77,7 +87,6 @@ def build_db(dataset_type_pkl, sample_size):
 
     if dataset_type_pkl == "test":
         val_size = Config.TEST_VALIDATION_NUM_OF_EXAMPLES_PER_CLASS
-        tr_size = 0
     else:
         val_size = Config.VALIDATION_NUM_OF_EXAMPLES_PER_CLASS
     
@@ -98,6 +107,7 @@ def compute_alpha(train_name, test_name, lam=1e-8):
     if not osp.exists(weight_save):
         test_save = osp.join(checkpoint_path, test_name)
         test_sigs = get_sig_matrix(test_save) #Stacks up signature vectors for all tasks into a matrix
+        print("test_sigs shape: ", test_sigs[0].shape)
 
         train_save = osp.join(checkpoint_path, train_name)
         train_sigs = get_sig_matrix(train_save)
@@ -137,13 +147,13 @@ def unpickle(path):
 
 def max_mean_discrepancy(Phi_1, Phi_2=None):
     ''' Take L2 norm squared '''
-    #We can have multiple training tasks/D_tr. Test/Target/D task will always be one
-    #Output should be distance of each row of D_tr against the only row of D 
+    #We can have multiple training tasks/D_tr and multiple Test tasks D
+    #Output should be distance of each row of D_tr against all Test tasks
     if Phi_2 is None:
         Phi_2 = Phi_1
-    diff = Phi_1 - Phi_2
+    diff = Phi_1[:,np.newaxis] - Phi_2
     diff = diff ** 2
-    dist = np.sum(diff,axis=1)[:,np.newaxis]
+    dist = np.sum(diff,axis=-1)
     return dist
 
 def gaussian_kernel(distance_list, bandwidth=1.0):

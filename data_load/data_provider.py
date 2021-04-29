@@ -26,6 +26,9 @@ class DataProvider(object):
             self._index_data(self._load_embeddings_data(dataset_type)) #Saves memory
         
     
+    def get_dataset_type(self):
+        return self._dataset_type
+
     # Valid output in debug mode only
     def get_embeddings_data(self):
         return self._embeddings_data

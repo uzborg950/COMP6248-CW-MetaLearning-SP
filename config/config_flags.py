@@ -24,7 +24,7 @@ SAVE_ROOT = "checkpoint\\save"
 
 TRAIN_SAMPLE_SIZE = 300 #original : 30000
 
-TEST_SAMPLE_SIZE = 1 #original: 100 
+TEST_SAMPLE_SIZE = 100 #original: 100 
 
 CHECKPOINT_STEPS = 500 # checkpoint_steps
 

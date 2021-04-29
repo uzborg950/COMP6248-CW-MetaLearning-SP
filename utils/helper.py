@@ -32,7 +32,7 @@ def get_task_dataset_path(dataset_type):
         path = osp.join(checkpoint_path, "%s_%s_%i_%i_%i" % ("train", db_title, train_sample_size, train_tr_size, train_val_size))
     elif dataset_type == 'test':
         test_sample_size =Config.TEST_SAMPLE_SIZE
-        test_tr_size = 0
+        test_tr_size = Config.TRAINING_NUM_OF_EXAMPLES_PER_CLASS
         test_val_size = Config.TEST_VALIDATION_NUM_OF_EXAMPLES_PER_CLASS
         path = osp.join(checkpoint_path, "%s_%s_%i_%i_%i" % ("test", db_title, test_sample_size, test_tr_size, test_val_size))
     return path
