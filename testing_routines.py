@@ -1,4 +1,5 @@
 from __future__ import annotations
+#
 import os
 import numpy as np
 import torch
@@ -18,6 +19,7 @@ import Task as Task
 import TestNets as TestNets
 import maml as MAML
 import tasml as TASML
+import baselearner as BASELEARNER
 
 
 def acc_of_training_module_on(test_net: torch.nn.Module, test_task: Task):
@@ -37,11 +39,43 @@ def finetune_module_on(test_net: torch.nn.Module, fine_tuning_task, isMetaFinetu
             tasks=[fine_tuning_task],
             # Tunables:
             # convergence_diff=,
-            max_meta_epochs=10,
+            max_meta_epochs=20,
             inner_epochs=10
         )
     else:
-        raise('Not implemented')
+        BASELEARNER.base_nn_classifier_finetune(
+            test_net=test_net,
+            fine_tuning_task=fine_tuning_task,
+            # Tunables:
+            # convergence_diff=,
+            max_epochs=10
+        )
+
+
+def run_baselearner(test_net: torch.nn.Module, training_tasks: list[Task], target_task: Task, test_task: Task):
+    acc0 = acc_of_training_module_on(test_net, test_task)
+    t0 = time.time()
+    # Train
+    BASELEARNER.base_nn_classifier_learn(
+        test_net=test_net,
+        training_tasks=training_tasks,
+        # Tunables:
+        # convergence_diff=0.0001,
+        max_epochs=10,
+        lr=0.001
+    )
+    t1 = time.time()
+    tr0 = t1 - t0
+    acc1 = acc_of_training_module_on(test_net, test_task)
+    t1 = time.time()
+    #
+    finetune_module_on(test_net, fine_tuning_task=target_task, isMetaFinetuned=False)
+    t2 = time.time()
+    tr1 = t2 - t1
+    trtot = t2 - t0
+    acc2 = acc_of_training_module_on(test_net, test_task)
+    #
+    print(', '.join([str(x) for x in ['BASE', target_task.task_friendly_name, acc0, '-', acc1, acc2, tr0, tr1, '-', trtot]]))
 
 
 def run_maml(test_net: torch.nn.Module, training_tasks: list[Task], target_task: Task, test_task: Task, isMetaFinetuned=True):
@@ -53,7 +87,7 @@ def run_maml(test_net: torch.nn.Module, training_tasks: list[Task], target_task:
         tasks=training_tasks,
         # Tunables:
         # convergence_diff=,
-        max_meta_epochs=10,
+        max_meta_epochs=20,
         inner_epochs=10
     )
     t1 = time.time()
@@ -66,7 +100,7 @@ def run_maml(test_net: torch.nn.Module, training_tasks: list[Task], target_task:
     tr1 = t2 - t1
     trtot = t2 - t0
     acc2 = acc_of_training_module_on(test_net, test_task)
-    print(', '.join([str(x) for x in ['MAML', target_task.task_friendly_name, acc0, '-', acc1, acc2, tr0, tr1, trtot]]))
+    print(', '.join([str(x) for x in ['MAML', target_task.task_friendly_name, acc0, '-', acc1, acc2, tr0, tr1, '-', trtot]]))
 
 def run_tasml(test_net: torch.nn.Module, training_tasks: list[Task], target_task: Task, alpha_weights: torch.Tensor, test_task: Task, isMetaFinetuned=True):
     acc0 = acc_of_training_module_on(test_net, test_task)
@@ -77,7 +111,7 @@ def run_tasml(test_net: torch.nn.Module, training_tasks: list[Task], target_task
         tasks=training_tasks,
         # Tunables:
         # convergence_diff=,
-        max_meta_epochs=10,
+        max_meta_epochs=20,
         inner_epochs=10
     )
     t1 = time.time()
@@ -92,7 +126,7 @@ def run_tasml(test_net: torch.nn.Module, training_tasks: list[Task], target_task
         alpha_weights=alpha_weights,
         # Tunables:
         # convergence_diff=,
-        max_meta_epochs=10,
+        max_meta_epochs=20,
         inner_epochs=10
     )
     t2 = time.time()
