@@ -39,8 +39,8 @@ def finetune_module_on(test_net: torch.nn.Module, fine_tuning_task, isMetaFinetu
             tasks=[fine_tuning_task],
             # Tunables:
             # convergence_diff=,
-            max_meta_epochs=20,
-            inner_epochs=10
+            max_meta_epochs=10,
+            inner_epochs=1
         )
     else:
         BASELEARNER.base_nn_classifier_finetune(
@@ -61,8 +61,7 @@ def run_baselearner(test_net: torch.nn.Module, training_tasks: list[Task], targe
         training_tasks=training_tasks,
         # Tunables:
         # convergence_diff=0.0001,
-        max_epochs=10,
-        lr=0.001
+        max_epochs=10
     )
     t1 = time.time()
     tr0 = t1 - t0
@@ -87,8 +86,8 @@ def run_maml(test_net: torch.nn.Module, training_tasks: list[Task], target_task:
         tasks=training_tasks,
         # Tunables:
         # convergence_diff=,
-        max_meta_epochs=20,
-        inner_epochs=10
+        max_meta_epochs=10,
+        inner_epochs=1
     )
     t1 = time.time()
     tr0 = t1 - t0
@@ -111,8 +110,8 @@ def run_tasml(test_net: torch.nn.Module, training_tasks: list[Task], target_task
         tasks=training_tasks,
         # Tunables:
         # convergence_diff=,
-        max_meta_epochs=20,
-        inner_epochs=10
+        max_meta_epochs=10,
+        inner_epochs=1
     )
     t1 = time.time()
     tr0 = t1 - t0
@@ -126,8 +125,8 @@ def run_tasml(test_net: torch.nn.Module, training_tasks: list[Task], target_task
         alpha_weights=alpha_weights,
         # Tunables:
         # convergence_diff=,
-        max_meta_epochs=20,
-        inner_epochs=10
+        max_meta_epochs=10,
+        inner_epochs=1
     )
     t2 = time.time()
     tr1 = t2 - t1
