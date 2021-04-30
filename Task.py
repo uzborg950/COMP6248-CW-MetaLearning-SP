@@ -1,6 +1,6 @@
 
 from __future__ import annotations
-try:   
+try:
     import torch
     import math
     import torchvision
@@ -20,10 +20,10 @@ class Task():
         self.batch_size = batch_size
         self.task_classes: List[TaskClass] = []
         #
-        self.supp_train: torch.Tensor
-        self.supp_targets: torch.Tensor
-        self.query_train: torch.Tensor
-        self.query_targets: torch.Tensor
+        self.supp_train: torch.Tensor = None
+        self.supp_targets: torch.Tensor = None
+        self.query_train: torch.Tensor = None
+        self.query_targets: torch.Tensor = None
 
     def add_task_class(self, task_class: TaskClass):
         self.task_classes.append(task_class)

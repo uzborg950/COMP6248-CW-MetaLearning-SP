@@ -10,6 +10,7 @@ from collections import OrderedDict
 import TaskClass as TaskClass
 import Task as Task
 
+
 def tasml_nn_classifier_learn(
         test_net: torch.nn.Module,
         tasks: list[Task.Task],
