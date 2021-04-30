@@ -20,11 +20,11 @@ VALIDATION_NUM_OF_EXAMPLES_PER_CLASS = 15 #Number of examples in each nth class
 
 CHECKPOINT_ROOT = "checkpoint/"
 
-SAVE_ROOT = "checkpoint\\save"
+SAVE_ROOT = "checkpoint/save"
 
 TRAIN_SAMPLE_SIZE = 300 #original : 30000
 
-TEST_SAMPLE_SIZE = 100 #original: 100 
+TEST_SAMPLE_SIZE = 100 #original: 100
 
 CHECKPOINT_STEPS = 500 # checkpoint_steps
 
