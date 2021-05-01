@@ -32,12 +32,16 @@ def run_lsmeta_unlimited(lam, l2_weight, layers, num=None):
         save_path += "_%i" % num
     run_training_loop(save_path, lam, l2_weight, layers)
 
+def get_task_dataset(dataset_type):
+    task_db_path = helper.get_task_dataset_path(dataset_type)
+    task_db = unpickle(task_db_path)
+    return task_db
+
 def top_m_filtering():
     ''' Filters largest m alpha weights and their corresponding train tasks ''' 
     alpha_weights_path = helper.get_alpha_weights_path()
     alpha_weights = unpickle(alpha_weights_path)
-    train_path = helper.get_task_dataset_path("train")
-    train_tasks = unpickle(train_path)
+    train_tasks = get_task_dataset("train")
 #1st row: highest weighted training task for each test tasks
     top_m = Config.TOP_M
     top_m_idx = np.flip(np.argsort(alpha_weights, axis=0), axis = 0)[:top_m,:]
