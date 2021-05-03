@@ -20,13 +20,18 @@ import testing_routines as TESTING_ROUTINES
 #Set tensor device
 device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
 
+# Note:
+# top_m_filtering if true is applied to all: BASE, MAML, TASML: all will perform better also BASE.
+# MAML Acc from top_m_filtering=False
+# TASML Acc from top_m_filtering=True
+
 #Flag to enable top M filtering
-top_m_filtering = False
+top_m_filtering = True
 #######################################################################################################################################
 # Generate Task DB or load from filesystem
 
 #print("Generating tasks and compute their alpha weights")
-#runner.populate_db()
+runner.populate_db()
 
 #Perform top-m filtering
 if top_m_filtering == True:
@@ -50,7 +55,7 @@ print("Generating training tasks")
 train_tasks = []
 if top_m_filtering == True:
     num_test_tasks = alpha_weights.shape[1]
-    for n in range(num_test_tasks): 
+    for n in range(num_test_tasks):
         print("Generating top m training tasks for test task " + str(n))
         train_tasks.append(th.generate_tasks(train_db[n], train_provider, train_tr_size, train_val_size, device))
 else:
