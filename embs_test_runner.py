@@ -104,4 +104,5 @@ for test_task_num, target_task in enumerate(test_tasks):
 
     TESTING_ROUTINES.run_baselearner(test_net_base, training_tasks_for_target, training_target_task, test_target_task)
     TESTING_ROUTINES.run_maml(test_net_maml, training_tasks_for_target, training_target_task, test_target_task) # TODO: no top m filtering for MAML
-    TESTING_ROUTINES.run_tasml(test_net_tasml, training_tasks_for_target, training_target_task, alpha_weights_for_target, test_target_task) # TODO:  Create separate blocks to run tasml and maml as they should contain train sets of different sizes
+    if top_m_filtering == True:
+        TESTING_ROUTINES.run_tasml(test_net_tasml, training_tasks_for_target, training_target_task, alpha_weights_for_target, test_target_task)
