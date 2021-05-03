@@ -20,6 +20,8 @@ import testing_routines as TESTING_ROUTINES
 #Set tensor device
 device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
 
+#Flag to enable top M filtering
+top_m_filtering = False
 #######################################################################################################################################
 # Generate Task DB or load from filesystem
 
@@ -27,13 +29,16 @@ device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
 #runner.populate_db()
 
 #Perform top-m filtering
-print("Filtering top-m alpha weights and training tasks")
-alpha_weights, train_db = runner.top_m_filtering()
+if top_m_filtering == True:
+    print("Filtering top-m alpha weights and training tasks")
+    alpha_weights, train_db = runner.top_m_filtering()
+else:
+    print("Fetch all training tasks")
+    train_db = runner.get_task_dataset("train")
 
 
 #Get target task from filesystem
-test_path = helper.get_task_dataset_path("test")
-test_db = runner.unpickle(test_path)
+test_db = runner.get_task_dataset("test")
 
 
 #Get train data embeddings
@@ -42,11 +47,16 @@ train_provider = dp.DataProvider("train", debug=False, verbose=False)
 train_tr_size = Config.TRAINING_NUM_OF_EXAMPLES_PER_CLASS
 train_val_size = Config.VALIDATION_NUM_OF_EXAMPLES_PER_CLASS
 print("Generating training tasks")
-num_test_tasks = alpha_weights.shape[1]
 train_tasks = []
-for n in range(num_test_tasks):
-    print("Generating top m training tasks for test task " + str(n))
-    train_tasks.append(th.generate_tasks(train_db[n], train_provider, train_tr_size, train_val_size, device))
+if top_m_filtering == True:
+    num_test_tasks = alpha_weights.shape[1]
+    for n in range(num_test_tasks): 
+        print("Generating top m training tasks for test task " + str(n))
+        train_tasks.append(th.generate_tasks(train_db[n], train_provider, train_tr_size, train_val_size, device))
+else:
+    print("Generating all training tasks")
+    train_tasks.append(th.generate_tasks(train_db, train_provider, train_tr_size, train_val_size, device))
+
 del train_db, train_provider #Free up space
 
 
@@ -68,8 +78,11 @@ def get_test_net():
 # Iterate each test task
 #Fetch the training tasks and weights for the test task
 for test_task_num, target_task in enumerate(test_tasks):
-    alpha_weights_for_target = alpha_weights[:,test_task_num]
-    training_tasks_for_target = train_tasks[test_task_num] #returns list
+    if top_m_filtering == True:
+        alpha_weights_for_target = alpha_weights[:,test_task_num]
+        training_tasks_for_target = train_tasks[test_task_num] #returns list
+    else:
+        training_tasks_for_target = train_tasks[0] # Returns the same (and only) full list of training tasks
 
     # Remaps to utilization of only training images for support and query.
     training_target_task = Task.Task(task_friendly_name=target_task.task_friendly_name, batch_size=target_task.batch_size)
@@ -91,4 +104,4 @@ for test_task_num, target_task in enumerate(test_tasks):
 
     TESTING_ROUTINES.run_baselearner(test_net_base, training_tasks_for_target, training_target_task, test_target_task)
     TESTING_ROUTINES.run_maml(test_net_maml, training_tasks_for_target, training_target_task, test_target_task) # TODO: no top m filtering for MAML
-    TESTING_ROUTINES.run_tasml(test_net_tasml, training_tasks_for_target, training_target_task, alpha_weights_for_target, test_target_task)
+    TESTING_ROUTINES.run_tasml(test_net_tasml, training_tasks_for_target, training_target_task, alpha_weights_for_target, test_target_task) # TODO:  Create separate blocks to run tasml and maml as they should contain train sets of different sizes
