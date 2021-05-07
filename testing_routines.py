@@ -21,6 +21,7 @@ import maml as MAML
 import tasml as TASML
 import baselearner as BASELEARNER
 
+OUTPUT_FILE_NAME = 'Log'
 
 def acc_of_training_module_on(test_net: torch.nn.Module, test_task: Task):
     acc = 0
@@ -76,6 +77,8 @@ def run_baselearner(test_net: torch.nn.Module, training_tasks: list[Task], targe
     #
     log = ', '.join([str(x) for x in ['BASE', target_task.task_friendly_name, acc0, '-', acc1, acc2, tr0, tr1, '-', trtot]])
     print(log)
+    with open(OUTPUT_FILE_NAME + '_BASE.csv', "a") as file_object:
+        file_object.write(log)
 
 
 def run_maml(test_net: torch.nn.Module, training_tasks: list[Task], target_task: Task, test_task: Task, isMetaFinetuned=True):
@@ -103,6 +106,8 @@ def run_maml(test_net: torch.nn.Module, training_tasks: list[Task], target_task:
     #
     log = ', '.join([str(x) for x in ['MAML', target_task.task_friendly_name, acc0, '-', acc1, acc2, '-', tr0, tr1, trtot]])
     print(log)
+    with open(OUTPUT_FILE_NAME + '_MAML.csv', "a") as file_object:
+        file_object.write(log)
 
 def run_tasml(test_net: torch.nn.Module, training_tasks: list[Task], target_task: Task, alpha_weights: torch.Tensor, test_task: Task, isMetaFinetuned=True):
     acc0 = acc_of_training_module_on(test_net, test_task)
@@ -145,3 +150,5 @@ def run_tasml(test_net: torch.nn.Module, training_tasks: list[Task], target_task
     #
     log = ', '.join([str(x) for x in ['TASML', target_task.task_friendly_name, acc0, acc1, acc2, acc3, tr0, tr1, tr2, trtot]])
     print(log)
+    with open(OUTPUT_FILE_NAME + '_TASML.csv', "a") as file_object:
+        file_object.write(log)
