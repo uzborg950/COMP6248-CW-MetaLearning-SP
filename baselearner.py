@@ -25,6 +25,7 @@ def base_nn_classifier_learn(
     prev_loss = 0 # Loss 2 rounds ago.
     last_loss = sys.maxsize # Loss last round.
     #
+    losses = []
     while (abs(prev_loss - last_loss) > convergence_diff and epochs_counter < max_epochs):
         loss_summ = 0
         for task in training_tasks:
@@ -45,10 +46,12 @@ def base_nn_classifier_learn(
 
             loss_summ += loss.item()
         #
+        print("Epoch " + str(epochs_counter) + ": "+ str(loss_summ))
+        losses.append(loss_summ)
         prev_loss = last_loss
         last_loss = loss_summ
         epochs_counter += 1
-
+    return losses
 
 def base_nn_classifier_finetune(
     test_net: torch.nn.Module,

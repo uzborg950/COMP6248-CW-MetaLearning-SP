@@ -31,6 +31,7 @@ def maml_nn_classifier_learn(
     prev_loss = 0 # Accumulated loss 2 rounds ago.
     last_loss = sys.maxsize # Accumulated loss last round.
     # MAML.
+    losses = []
     while (abs(prev_loss - last_loss) > convergence_diff and meta_epochs_counter < max_meta_epochs):
         #
         # Store this epoch's theta.
@@ -65,9 +66,12 @@ def maml_nn_classifier_learn(
             for name, params in test_net.named_parameters():
                 params.data.copy_(backup_named_parameters[name])
         #
+        print("Epoch " + str(meta_epochs_counter) + ": "+ str(outer_loss_sum.item()))
+        losses.append(outer_loss_sum.item())
         outer_loss_sum.backward()
         outer_optimiser.step()
         #
         prev_loss = last_loss
         last_loss = outer_loss_sum.item()
         meta_epochs_counter += 1
+    return losses

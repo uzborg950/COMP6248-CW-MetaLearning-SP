@@ -7,6 +7,8 @@ import torchvision
 import PIL
 import copy
 import time
+import sys
+import csv
 #
 import config.config_flags as Config
 import data_load.data_provider as dp
@@ -21,7 +23,7 @@ import maml as MAML
 import tasml as TASML
 import baselearner as BASELEARNER
 
-OUTPUT_FILE_NAME = 'Log'
+OUTPUT_FILE_NAME = 'Log_TopMFalse_Mini'
 
 def acc_of_training_module_on(test_net: torch.nn.Module, test_task: Task):
     acc = 0
@@ -40,7 +42,7 @@ def finetune_module_on(test_net: torch.nn.Module, fine_tuning_task, isMetaFinetu
             tasks=[fine_tuning_task],
             # Tunables:
             convergence_diff=0.0001,
-            max_meta_epochs=20,
+            max_meta_epochs=sys.maxsize,
             inner_epochs=1
         )
     else:
@@ -49,7 +51,7 @@ def finetune_module_on(test_net: torch.nn.Module, fine_tuning_task, isMetaFinetu
             fine_tuning_task=fine_tuning_task,
             # Tunables:
             convergence_diff=0.0001,
-            max_epochs=20
+            max_epochs=sys.maxsize
         )
 
 
@@ -57,12 +59,12 @@ def run_baselearner(test_net: torch.nn.Module, training_tasks: list[Task], targe
     acc0 = acc_of_training_module_on(test_net, test_task)
     t0 = time.time()
     # Train
-    BASELEARNER.base_nn_classifier_learn(
+    train_losses = BASELEARNER.base_nn_classifier_learn(
         test_net=test_net,
         training_tasks=training_tasks,
         # Tunables:
         convergence_diff=0.0001,
-        max_epochs=80
+        max_epochs=sys.maxsize
     )
     t1 = time.time()
     tr0 = t1 - t0
@@ -79,18 +81,21 @@ def run_baselearner(test_net: torch.nn.Module, training_tasks: list[Task], targe
     print(log)
     with open(OUTPUT_FILE_NAME + '_BASE.csv', "a") as file_object:
         file_object.write(log)
+    with open(OUTPUT_FILE_NAME +"_"+ target_task.task_friendly_name+'_LOSS_BASE.csv', "a") as file_object:
+        write = csv.writer(file_object)
+        write.writerow(train_losses)
 
 
 def run_maml(test_net: torch.nn.Module, training_tasks: list[Task], target_task: Task, test_task: Task, isMetaFinetuned=True):
     acc0 = acc_of_training_module_on(test_net, test_task)
     t0 = time.time()
     # Train.
-    MAML.maml_nn_classifier_learn(
+    train_losses = MAML.maml_nn_classifier_learn(
         test_net = test_net,
         tasks=training_tasks,
         # Tunables:
         convergence_diff=0.0001,
-        max_meta_epochs=80,
+        max_meta_epochs=sys.maxsize,
         inner_epochs=1
     )
     t1 = time.time()
@@ -108,12 +113,15 @@ def run_maml(test_net: torch.nn.Module, training_tasks: list[Task], target_task:
     print(log)
     with open(OUTPUT_FILE_NAME + '_MAML.csv', "a") as file_object:
         file_object.write(log)
+    with open(OUTPUT_FILE_NAME +"_"+ target_task.task_friendly_name+'_LOSS_MAML.csv', "a") as file_object:
+        write = csv.writer(file_object)
+        write.writerow(train_losses)
 
 def run_tasml(test_net: torch.nn.Module, training_tasks: list[Task], target_task: Task, alpha_weights: torch.Tensor, test_task: Task, isMetaFinetuned=True):
     acc0 = acc_of_training_module_on(test_net, test_task)
     t0 = time.time()
     # Warm-start.
-    MAML.maml_nn_classifier_learn(
+    train_losses_warmstart = MAML.maml_nn_classifier_learn(
         test_net = test_net,
         tasks=training_tasks,
         # Tunables:
@@ -126,14 +134,14 @@ def run_tasml(test_net: torch.nn.Module, training_tasks: list[Task], target_task
     acc1 = acc_of_training_module_on(test_net, test_task)
     t1 = time.time()
     # Tasml.
-    TASML.tasml_nn_classifier_learn(
+    train_losses_tasml = TASML.tasml_nn_classifier_learn(
         test_net = test_net,
         tasks=training_tasks,
         target_task=target_task,
         alpha_weights=alpha_weights,
         # Tunables:
         convergence_diff=0.0001,
-        max_meta_epochs=50,
+        max_meta_epochs=sys.maxsize,
         inner_epochs=1
     )
     t2 = time.time()
@@ -152,3 +160,10 @@ def run_tasml(test_net: torch.nn.Module, training_tasks: list[Task], target_task
     print(log)
     with open(OUTPUT_FILE_NAME + '_TASML.csv', "a") as file_object:
         file_object.write(log)
+    with open(OUTPUT_FILE_NAME +"_"+ target_task.task_friendly_name+'_WARMSTART_LOSS_MAML.csv', "a") as file_object:
+        write = csv.writer(file_object)
+        write.writerow(train_losses_warmstart)
+    with open(OUTPUT_FILE_NAME +"_"+ target_task.task_friendly_name+'_LOSS_TASML.csv', "a") as file_object:
+        write = csv.writer(file_object)
+        write.writerow(train_losses_tasml)
+

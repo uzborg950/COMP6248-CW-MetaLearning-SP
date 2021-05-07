@@ -18,7 +18,7 @@ import testing_routines as TESTING_ROUTINES
 
 
 #Set tensor device
-device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
+device = torch.device('cpu' if torch.cuda.is_available() else 'cpu')
 
 # Note:
 # top_m_filtering if true is applied to all: BASE, MAML, TASML: all will perform better also BASE.
@@ -77,7 +77,7 @@ del test_db, test_provider #Free up space
 
 # Create network test instance.
 def get_test_net():
-    return TestNets.MAMLModule1(input_len=640, n_classes=Config.NUM_OF_CLASSES)
+    return TestNets.MAMLModule1(input_len=640, n_classes=Config.NUM_OF_CLASSES) #Change module name here
 
 
 # Iterate each test task
@@ -107,7 +107,7 @@ for test_task_num, target_task in enumerate(test_tasks):
     test_net_tasml = get_test_net()
     test_net_tasml.load_state_dict(copy.deepcopy(test_net_base.state_dict()))
 
-    TESTING_ROUTINES.run_baselearner(test_net_base, training_tasks_for_target, training_target_task, test_target_task)
-    TESTING_ROUTINES.run_maml(test_net_maml, training_tasks_for_target, training_target_task, test_target_task) # TODO: no top m filtering for MAML
+    #TESTING_ROUTINES.run_baselearner(test_net_base, training_tasks_for_target, training_target_task, test_target_task)
+    #TESTING_ROUTINES.run_maml(test_net_maml, training_tasks_for_target, training_target_task, test_target_task) # TODO: no top m filtering for MAML
     if top_m_filtering == True:
         TESTING_ROUTINES.run_tasml(test_net_tasml, training_tasks_for_target, training_target_task, alpha_weights_for_target, test_target_task)
