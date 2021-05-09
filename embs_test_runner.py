@@ -18,7 +18,7 @@ import testing_routines as TESTING_ROUTINES
 
 
 #Set tensor device
-device = torch.device('cpu' if torch.cuda.is_available() else 'cpu')
+device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
 
 # Note:
 # top_m_filtering if true is applied to all: BASE, MAML, TASML: all will perform better also BASE.

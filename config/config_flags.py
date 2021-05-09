@@ -22,7 +22,7 @@ CHECKPOINT_ROOT = "checkpoint/"
 
 SAVE_ROOT = "checkpoint/save"
 
-TRAIN_SAMPLE_SIZE = 10000 #original : 30000
+TRAIN_SAMPLE_SIZE = 2000 #original : 30000
 
 TEST_SAMPLE_SIZE = 10 #original: 100
 
@@ -30,6 +30,6 @@ CHECKPOINT_STEPS = 500 # checkpoint_steps
 
 TOTAL_STEPS = 4000 # num_steps_limit
 
-TOP_M = 100 #original: 1% of train_sample_size (30000)
+TOP_M = 20 #original: 1% of train_sample_size (30000)
 
 BATCH_SIZE = 30

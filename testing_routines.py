@@ -23,7 +23,7 @@ import maml as MAML
 import tasml as TASML
 import baselearner as BASELEARNER
 
-OUTPUT_FILE_NAME = 'Log_TopMFalse_Mini'
+OUTPUT_FILE_NAME = 'Log_TopMTrue_Mini_MAMLModel1'
 
 def acc_of_training_module_on(test_net: torch.nn.Module, test_task: Task):
     acc = 0
@@ -42,7 +42,7 @@ def finetune_module_on(test_net: torch.nn.Module, fine_tuning_task, isMetaFinetu
             tasks=[fine_tuning_task],
             # Tunables:
             convergence_diff=0.0001,
-            max_meta_epochs=sys.maxsize,
+            max_meta_epochs=500,
             inner_epochs=1
         )
     else:
@@ -51,7 +51,7 @@ def finetune_module_on(test_net: torch.nn.Module, fine_tuning_task, isMetaFinetu
             fine_tuning_task=fine_tuning_task,
             # Tunables:
             convergence_diff=0.0001,
-            max_epochs=sys.maxsize
+            max_epochs=500
         )
 
 
@@ -64,7 +64,7 @@ def run_baselearner(test_net: torch.nn.Module, training_tasks: list[Task], targe
         training_tasks=training_tasks,
         # Tunables:
         convergence_diff=0.0001,
-        max_epochs=sys.maxsize
+        max_epochs=500
     )
     t1 = time.time()
     tr0 = t1 - t0
@@ -77,7 +77,7 @@ def run_baselearner(test_net: torch.nn.Module, training_tasks: list[Task], targe
     trtot = t2 - t0
     acc2 = acc_of_training_module_on(test_net, test_task)
     #
-    log = ', '.join([str(x) for x in ['BASE', target_task.task_friendly_name, acc0, '-', acc1, acc2, tr0, tr1, '-', trtot]])
+    log = ', '.join([str(x) for x in ['BASE', target_task.task_friendly_name, acc0, '-', acc1, acc2, tr0, tr1, '-', trtot]]) + '\n'
     print(log)
     with open(OUTPUT_FILE_NAME + '_BASE.csv', "a") as file_object:
         file_object.write(log)
@@ -95,7 +95,7 @@ def run_maml(test_net: torch.nn.Module, training_tasks: list[Task], target_task:
         tasks=training_tasks,
         # Tunables:
         convergence_diff=0.0001,
-        max_meta_epochs=sys.maxsize,
+        max_meta_epochs=500,
         inner_epochs=1
     )
     t1 = time.time()
@@ -109,7 +109,7 @@ def run_maml(test_net: torch.nn.Module, training_tasks: list[Task], target_task:
     trtot = t2 - t0
     acc2 = acc_of_training_module_on(test_net, test_task)
     #
-    log = ', '.join([str(x) for x in ['MAML', target_task.task_friendly_name, acc0, '-', acc1, acc2, '-', tr0, tr1, trtot]])
+    log = ', '.join([str(x) for x in ['MAML', target_task.task_friendly_name, acc0, '-', acc1, acc2, '-', tr0, tr1, trtot]]) + '\n'
     print(log)
     with open(OUTPUT_FILE_NAME + '_MAML.csv', "a") as file_object:
         file_object.write(log)
@@ -141,7 +141,7 @@ def run_tasml(test_net: torch.nn.Module, training_tasks: list[Task], target_task
         alpha_weights=alpha_weights,
         # Tunables:
         convergence_diff=0.0001,
-        max_meta_epochs=sys.maxsize,
+        max_meta_epochs=500,
         inner_epochs=1
     )
     t2 = time.time()
@@ -156,7 +156,7 @@ def run_tasml(test_net: torch.nn.Module, training_tasks: list[Task], target_task
     #
     acc3 = acc_of_training_module_on(test_net, test_task)
     #
-    log = ', '.join([str(x) for x in ['TASML', target_task.task_friendly_name, acc0, acc1, acc2, acc3, tr0, tr1, tr2, trtot]])
+    log = ', '.join([str(x) for x in ['TASML', target_task.task_friendly_name, acc0, acc1, acc2, acc3, tr0, tr1, tr2, trtot]]) + '\n'
     print(log)
     with open(OUTPUT_FILE_NAME + '_TASML.csv', "a") as file_object:
         file_object.write(log)
