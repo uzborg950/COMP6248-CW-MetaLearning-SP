@@ -23,7 +23,7 @@ import maml as MAML
 import tasml as TASML
 import baselearner as BASELEARNER
 
-OUTPUT_FILE_NAME = 'Log_TopMTrue_Mini_MAMLModel1'
+OUTPUT_FILE_NAME = 'Log_Tiered_True_5w5s_500_5_MAMLModule1'
 
 def acc_of_training_module_on(test_net: torch.nn.Module, test_task: Task):
     acc = 0
