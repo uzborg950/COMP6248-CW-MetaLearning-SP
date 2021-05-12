@@ -1,7 +1,8 @@
 # COMP6248-CW-MetaLearning-SP
-Implements paper: "Structured Prediction for Conditional Meta-Learning" by authors, Wang, Ruohan Demiris, Yiannis Ciliberto, Carlo
 
-Uses imagenet embeddings from https://github.com/deepmind/leo. 
+Implements paper: ["Structured Prediction for Conditional Meta-Learning" by Wang, Ruohan Demiris, Yiannis Ciliberto, Carlo](https://arxiv.org/abs/2002.08799) 
+
+Uses miniImageNet and tieredImageNet embeddings from https://github.com/deepmind/leo. 
 
 ### Dependecies.
 - Python: Python3.9.x
