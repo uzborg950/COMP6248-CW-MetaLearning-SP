@@ -1,3 +1,4 @@
+Linked to: https://github.com/COMP6248-Reproducability-Challenge/Structured-Prediction-for-Conditional-MetaLearning-with-Deep-Models
 # COMP6248-CW-MetaLearning-SP
 
 Implements paper: ["Structured Prediction for Conditional Meta-Learning" by Wang, Ruohan Demiris, Yiannis Ciliberto, Carlo](https://arxiv.org/abs/2002.08799) 
